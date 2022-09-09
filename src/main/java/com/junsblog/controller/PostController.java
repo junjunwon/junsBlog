@@ -19,21 +19,8 @@ public class PostController  {
 
     //등록
     @PostMapping("/savePostJson")
-    public Map<String, String> saveJson(@RequestBody @Valid PostCreate params, BindingResult result){
+    public Map<String, String> saveJson(@RequestBody @Valid PostCreate params){
         log.info("params = {}", params.toString());
-
-        if(result.hasErrors()) {
-            List<FieldError> fieldErrors = result.getFieldErrors();
-            FieldError firstFieldError = fieldErrors.get(0);
-            String fieldName = firstFieldError.getField();
-            String errorMessage = firstFieldError.getDefaultMessage();
-
-            Map<String, String> error = new HashMap<>();
-            error.put(fieldName, errorMessage);
-
-            return error;
-
-        }
 
         return Map.of();
     }
