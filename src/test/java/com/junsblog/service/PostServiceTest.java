@@ -3,6 +3,7 @@ package com.junsblog.service;
 import com.junsblog.domain.Post;
 import com.junsblog.repository.PostRepository;
 import com.junsblog.request.PostCreate;
+import com.junsblog.request.PostSearch;
 import com.junsblog.response.PostResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -102,7 +103,36 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("글 1페이지 조회")
+    @DisplayName("글 1페이지 조회 JPA")
+    void findByPageByJpa() {
+        List<Post> requestPosts = IntStream.range(1, 31)
+                .mapToObj(i -> {
+                    return Post.builder()
+                            .title("나만의 블로그 제목 - " + i)
+                            .content("나만의 글 목록 - "+ i)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        postRepository.saveAll(requestPosts);
+
+        //jpaRepository로 pageable을 넘겨줄 때
+        Pageable pageable = PageRequest.of(0, 5, by(DESC, "id"));
+//        Pageable pageable = PageRequest.of(0, 5);
+
+        //when
+        List<PostResponse> responseList = postService.getPageListByJpa(pageable);
+
+        //then
+        assertNotNull(responseList);
+        assertEquals(5L, responseList.size());
+        assertEquals("나만의 블로그 제목 - 30", responseList.get(0).getTitle());
+        assertEquals("나만의 글 목록 - 30", responseList.get(0).getContent());
+        assertEquals("나만의 글 목록 - 26", responseList.get(4).getContent());
+    }
+
+    @Test
+    @DisplayName("글 1페이지 조회 QueryDSL")
     void findByPage() {
         List<Post> requestPosts = IntStream.range(1, 31)
                 .mapToObj(i -> {
@@ -115,14 +145,16 @@ class PostServiceTest {
 
         postRepository.saveAll(requestPosts);
 
-        Pageable pageable = PageRequest.of(0, 5, by(DESC, "id"));
+        PostSearch postSearch = PostSearch.builder()
+                .page(1)
+                .build();
 
         //when
-        List<PostResponse> responseList = postService.getPageList(pageable);
+        List<PostResponse> responseList = postService.getPageList(postSearch);
 
         //then
         assertNotNull(responseList);
-        assertEquals(5L, responseList.size());
+        assertEquals(10L, responseList.size());
         assertEquals("나만의 블로그 제목 - 30", responseList.get(0).getTitle());
         assertEquals("나만의 글 목록 - 30", responseList.get(0).getContent());
         assertEquals("나만의 글 목록 - 26", responseList.get(4).getContent());

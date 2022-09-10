@@ -185,8 +185,8 @@ class PostControllerTest {
     }
 
     @Test
-    @DisplayName("글 여러개 조회 페이징처리")
-    void findAllByPage() throws Exception {
+    @DisplayName("글 여러개 조회 페이징처리 Jpa")
+    void findByPageByJpa() throws Exception {
         //given
         List<Post> requestPosts = IntStream.range(1, 31)
                 .mapToObj(i -> {
@@ -204,10 +204,37 @@ class PostControllerTest {
          * jsonPath에 list를 위한 처리가 필요하다.
          */
         //expected
-        mockMvc.perform(get("/postsByPage?page=1&sort=id,desc")) //applicaiton.yml에 default size를 설정해주지 않으면 &size=5로 파라미터를 넘겨주면 된다.
+        mockMvc.perform(get("/getPageListByJpa?page=1&sort=id,desc")) //applicaiton.yml에 default size를 설정해주지 않으면 &size=5로 파라미터를 넘겨주면 된다.
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()", is(5)))
-                .andExpect(jsonPath("$[0].id").value(30))
+                .andExpect(jsonPath("$[0].title").value("나만의 블로그 제목 - 30"))
+                .andExpect(jsonPath("$[0].content").value("나만의 글 목록 - 30"))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("글 여러개 조회 페이징처리 QueryDsl")
+    void findByPage() throws Exception {
+        //given
+        List<Post> requestPosts = IntStream.range(1, 31)
+                .mapToObj(i -> {
+                    return Post.builder()
+                            .title("나만의 블로그 제목 - " + i)
+                            .content("나만의 글 목록 - "+ i)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        postRepository.saveAll(requestPosts);
+
+
+        /**
+         * jsonPath에 list를 위한 처리가 필요하다.
+         */
+        //expected
+        mockMvc.perform(get("/postsByPage?page=0&size=10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", is(10)))
                 .andExpect(jsonPath("$[0].title").value("나만의 블로그 제목 - 30"))
                 .andExpect(jsonPath("$[0].content").value("나만의 글 목록 - 30"))
                 .andDo(print());

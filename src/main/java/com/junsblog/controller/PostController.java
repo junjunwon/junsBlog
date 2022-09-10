@@ -1,6 +1,7 @@
 package com.junsblog.controller;
 
 import com.junsblog.request.PostCreate;
+import com.junsblog.request.PostSearch;
 import com.junsblog.response.PostResponse;
 import com.junsblog.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -43,15 +44,27 @@ public class PostController  {
     }
 
     /**
-     * 게시글 여러개 조회하는 API
+     * 게시글 여러개 조회하는 API (JPA)
+     *
+     * @author jh.won
+     * @since 222.09.10
+     * @return
+     */
+    @GetMapping("/getPageListByJpa")
+    public List<PostResponse> getPageListByJpa(Pageable page) {
+        return postService.getPageListByJpa(page);
+    }
+
+    /**
+     * 게시글 여러개 조회하는 API (QueryDsl)
      *
      * @author jh.won
      * @since 222.09.10
      * @return
      */
     @GetMapping("/postsByPage")
-    public List<PostResponse> getPageList(Pageable page) {
-        return postService.getPageList(page);
+    public List<PostResponse> getPageList(@ModelAttribute PostSearch postSearch) {
+        return postService.getPageList(postSearch);
     }
 
 

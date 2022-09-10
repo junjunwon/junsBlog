@@ -3,6 +3,7 @@ package com.junsblog.service;
 import com.junsblog.domain.Post;
 import com.junsblog.repository.PostRepository;
 import com.junsblog.request.PostCreate;
+import com.junsblog.request.PostSearch;
 import com.junsblog.response.PostResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,11 +50,17 @@ public class PostService {
 
     }
 
-    public List<PostResponse> getPageList(Pageable page) {
-        //web에서 page를 1로 가져오면 0으로 변경된다.
+    public List<PostResponse> getPageList(PostSearch postSearch) {
+        return postRepository.getPageList(postSearch).stream()
+                .map(PostResponse::new)
+                .collect(Collectors.toList());
+    }
 
+    public List<PostResponse> getPageListByJpa(Pageable page) {
+        //web에서 page를 1로 가져오면 0으로 변경된다.
         return postRepository.findAll(page).stream()
                 .map(PostResponse::new)
                 .collect(Collectors.toList());
+
     }
 }
