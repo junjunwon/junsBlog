@@ -1,5 +1,6 @@
 package com.junsblog.response;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -17,7 +18,6 @@ import java.util.Map;
  * }
  */
 @Getter
-@RequiredArgsConstructor
 public class ErrorResponse {
     /**
      * 회사나 팀마다 규칙이 조금씩 달라서 표준화가 필요하다.
@@ -25,6 +25,12 @@ public class ErrorResponse {
     private final String code;
     private final String message;
     private final Map<String, String> validation = new HashMap<>(); //초기값이 null이기 때문에.
+
+    @Builder
+    public ErrorResponse(String code, String message) {
+        this.code = code;
+        this.message = message;
+    }
 
     public void addValidation(String field, String errorMessage) {
         this.validation.put(field, errorMessage);
