@@ -9,11 +9,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.data.domain.Sort.Direction.DESC;
+import static org.springframework.data.domain.Sort.by;
 
 @SpringBootTest
 class PostServiceTest {
@@ -75,7 +81,6 @@ class PostServiceTest {
     @DisplayName("글 여러개 조회 Test")
     void findAll() throws Exception {
         //given
-
         postRepository.saveAll(List.of(
             Post.builder()
                     .title("foo")
@@ -94,6 +99,33 @@ class PostServiceTest {
         assertNotNull(responseList);
         assertEquals(2L, responseList.size());
 
+    }
+
+    @Test
+    @DisplayName("글 1페이지 조회")
+    void findByPage() {
+        List<Post> requestPosts = IntStream.range(1, 31)
+                .mapToObj(i -> {
+                    return Post.builder()
+                            .title("나만의 블로그 제목 - " + i)
+                            .content("나만의 글 목록 - "+ i)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        postRepository.saveAll(requestPosts);
+
+        Pageable pageable = PageRequest.of(0, 5, by(DESC, "id"));
+
+        //when
+        List<PostResponse> responseList = postService.getPageList(pageable);
+
+        //then
+        assertNotNull(responseList);
+        assertEquals(5L, responseList.size());
+        assertEquals("나만의 블로그 제목 - 30", responseList.get(0).getTitle());
+        assertEquals("나만의 글 목록 - 30", responseList.get(0).getContent());
+        assertEquals("나만의 글 목록 - 26", responseList.get(4).getContent());
     }
 
 }

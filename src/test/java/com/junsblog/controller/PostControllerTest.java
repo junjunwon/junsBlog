@@ -5,7 +5,6 @@ import com.junsblog.domain.Post;
 import com.junsblog.repository.PostRepository;
 import com.junsblog.request.PostCreate;
 import com.junsblog.service.PostService;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +13,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -170,7 +174,7 @@ class PostControllerTest {
          */
         //expected
         mockMvc.perform(get("/posts"))
-                .andExpect(jsonPath("$.length()", Matchers.is(2)))
+                .andExpect(jsonPath("$.length()", is(2)))
                 .andExpect(jsonPath("$[0].id").value(post.getId()))
                 .andExpect(jsonPath("$[0].title").value("title1"))
                 .andExpect(jsonPath("$[0].content").value("bar1"))
@@ -180,4 +184,32 @@ class PostControllerTest {
                 .andDo(print());
     }
 
+    @Test
+    @DisplayName("글 여러개 조회 페이징처리")
+    void findAllByPage() throws Exception {
+        //given
+        List<Post> requestPosts = IntStream.range(1, 31)
+                .mapToObj(i -> {
+                    return Post.builder()
+                            .title("나만의 블로그 제목 - " + i)
+                            .content("나만의 글 목록 - "+ i)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        postRepository.saveAll(requestPosts);
+
+
+        /**
+         * jsonPath에 list를 위한 처리가 필요하다.
+         */
+        //expected
+        mockMvc.perform(get("/postsByPage?page=1&sort=id,desc")) //applicaiton.yml에 default size를 설정해주지 않으면 &size=5로 파라미터를 넘겨주면 된다.
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", is(5)))
+                .andExpect(jsonPath("$[0].id").value(30))
+                .andExpect(jsonPath("$[0].title").value("나만의 블로그 제목 - 30"))
+                .andExpect(jsonPath("$[0].content").value("나만의 글 목록 - 30"))
+                .andDo(print());
+    }
 }

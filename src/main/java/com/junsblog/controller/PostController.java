@@ -5,6 +5,7 @@ import com.junsblog.response.PostResponse;
 import com.junsblog.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -39,6 +40,18 @@ public class PostController  {
     @GetMapping("/posts")
     public List<PostResponse> getList() {
         return postService.getList();
+    }
+
+    /**
+     * 게시글 여러개 조회하는 API
+     *
+     * @author jh.won
+     * @since 222.09.10
+     * @return
+     */
+    @GetMapping("/postsByPage")
+    public List<PostResponse> getPageList(Pageable page) {
+        return postService.getPageList(page);
     }
 
 
