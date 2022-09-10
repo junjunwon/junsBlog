@@ -8,7 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -19,8 +20,6 @@ public class PostService {
 
     public void write(PostCreate postCreate) {
         //postCreate -> entity
-
-//        Post post = new Post(postCreate.getTitle(), postCreate.getContent());
         Post post = Post.builder()
                             .title(postCreate.getTitle())
                             .content(postCreate.getContent())
@@ -35,14 +34,17 @@ public class PostService {
 
         //요구사항이 들어오면 응답 클래스로 분리하세요!!
         //json응답에서 title값 길이를 최대 10글자로 해주세요.
-        PostResponse postResponse = PostResponse.builder()
+        return PostResponse.builder()
                 .id(post.getId())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .build();
 
+    }
 
-        return postResponse;
+    public List<PostResponse> getList() {
+        return postRepository.findAll().stream()
+                .map(PostResponse::new).collect(Collectors.toList());
 
     }
 }

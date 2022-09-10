@@ -5,6 +5,7 @@ import com.junsblog.domain.Post;
 import com.junsblog.repository.PostRepository;
 import com.junsblog.request.PostCreate;
 import com.junsblog.service.PostService;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,10 +14,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.http.MediaType.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 //@WebMvcTest //web layoer 테스트를 할때는 괜찮지만 애플리케이션 전반적인 테스트시 적합하진 않다
@@ -147,5 +150,34 @@ class PostControllerTest {
 
     }
 
+    @Test
+    @DisplayName("글 여러개 조회 Test")
+    void findAll() throws Exception {
+        //given
+        Post post = postRepository.save(Post.builder()
+                .title("title1")
+                .content("bar1")
+                .build());
+
+        Post post2 = postRepository.save(Post.builder()
+                .title("title2")
+                .content("bar2")
+                .build());
+
+
+        /**
+         * jsonPath에 list를 위한 처리가 필요하다.
+         */
+        //expected
+        mockMvc.perform(get("/posts"))
+                .andExpect(jsonPath("$.length()", Matchers.is(2)))
+                .andExpect(jsonPath("$[0].id").value(post.getId()))
+                .andExpect(jsonPath("$[0].title").value("title1"))
+                .andExpect(jsonPath("$[0].content").value("bar1"))
+                .andExpect(jsonPath("$[1].id").value(post2.getId()))
+                .andExpect(jsonPath("$[1].title").value("title2"))
+                .andExpect(jsonPath("$[1].content").value("bar2"))
+                .andDo(print());
+    }
 
 }

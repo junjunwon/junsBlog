@@ -1,18 +1,13 @@
 package com.junsblog.controller;
 
-import com.junsblog.domain.Post;
 import com.junsblog.request.PostCreate;
 import com.junsblog.response.PostResponse;
 import com.junsblog.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,12 +25,22 @@ public class PostController  {
      * @return
      */
     @GetMapping("/posts/{postId}")
-    public PostResponse get(@PathVariable(name = "postId") Long id) {
-
-        PostResponse postResponse = postService.get(id);
-
-        return postResponse;
+    public PostResponse get(@PathVariable Long postId) {
+        return postService.get(postId);
     }
+
+    /**
+     * 게시글 여러개 조회하는 API
+     *
+     * @author jh.won
+     * @since 222.09.10
+     * @return
+     */
+    @GetMapping("/posts")
+    public List<PostResponse> getList() {
+        return postService.getList();
+    }
+
 
     //등록
     @PostMapping("/savePostJson")
