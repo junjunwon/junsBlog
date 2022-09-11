@@ -1,8 +1,10 @@
 package com.junsblog.service;
 
 import com.junsblog.domain.Post;
+import com.junsblog.exception.PostNotFound;
 import com.junsblog.repository.PostRepository;
 import com.junsblog.request.PostCreate;
+import com.junsblog.request.PostEdit;
 import com.junsblog.request.PostSearch;
 import com.junsblog.response.PostResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,8 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static org.springframework.data.domain.Sort.by;
 
@@ -160,4 +161,129 @@ class PostServiceTest {
         assertEquals("나만의 글 목록 - 26", responseList.get(4).getContent());
     }
 
+    @Test
+    @DisplayName("글 제목 수정")
+    void editTitle() {
+        //given
+        Post post = Post.builder()
+                .title("준호의 꿈")
+                .content("너는 아니?")
+                .build();
+        postRepository.save(post);
+
+        PostEdit postEdit = PostEdit.builder()
+                .title("준호의 절망") // 이렇게 할 경우 content = null이 들어가지만, 클라이언트와 협의해서 content원본을 보낼 수도 있고 안보낼 수도 있다.
+                .content("너는 아니?")
+                .build();
+        //when
+        postService.edit(post.getId(), postEdit);
+
+        //then
+        Post getPost = postRepository.findById(post.getId())
+                .orElseThrow(() -> new RuntimeException("글이 존재하지 않습니다. id = " + post.getId()));
+
+        assertEquals(postEdit.getTitle(), getPost.getTitle());
+        assertEquals("너는 아니?", getPost.getContent());
+    }
+
+    @Test
+    @DisplayName("글 내용 수정")
+    void editContent() {
+        //given
+        Post post = Post.builder()
+                .title("준호의 꿈")
+                .content("너는 아니?")
+                .build();
+        postRepository.save(post);
+
+        PostEdit postEdit = PostEdit.builder()
+                .title("준호의 꿈") // 이렇게 할 경우 content = null이 들어가지만, 클라이언트와 협의해서 content원본을 보낼 수도 있고 안보낼 수도 있다.
+                .content("나는 몰라")
+                .build();
+        //when
+        postService.edit(post.getId(), postEdit);
+
+        //then
+        Post getPost = postRepository.findById(post.getId())
+                .orElseThrow(() -> new RuntimeException("글이 존재하지 않습니다. id = " + post.getId()));
+
+        assertEquals(postEdit.getTitle(), getPost.getTitle());
+        assertEquals(postEdit.getContent(), getPost.getContent());
+    }
+
+    @Test
+    @DisplayName("게시글 삭제")
+    void delete() {
+        //given
+        Post post = Post.builder()
+                .title("준호의 꿈")
+                .content("너는 아니?")
+                .build();
+        postRepository.save(post);
+
+        //when
+        postService.delete(post.getId());
+
+        //then
+        assertEquals(0, postRepository.count());
+    }
+
+    @Test
+    @DisplayName("글 한개 조회 실패에 대한 에러 테스트")
+    void failTestForfindById() {
+        //given
+        Post post = Post.builder()
+                .title("준호")
+                .content("냠냠 남양주")
+                .build();
+        postRepository.save(post);
+
+        // expected
+        //어떤 예외가 발생했는지에 대한 검증
+        assertThrows(PostNotFound.class, () -> {
+            postService.get(post.getId() + 1L);
+        });
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 - 실패에 대한 에러 테스트")
+    void failTestFordelete() {
+        //given
+        Post post = Post.builder()
+                .title("준호의 꿈")
+                .content("너는 아니?")
+                .build();
+        postRepository.save(post);
+
+        //when
+        postService.delete(post.getId());
+
+        //then
+        assertThrows(PostNotFound.class, () -> {
+            postService.delete(post.getId() + 1L);
+        });
+    }
+
+    @Test
+    @DisplayName("글 제목 수정 - 실패에 대한 에러 테스트")
+    void failTestForeditTitle() {
+        //given
+        Post post = Post.builder()
+                .title("준호의 꿈")
+                .content("너는 아니?")
+                .build();
+        postRepository.save(post);
+
+        PostEdit postEdit = PostEdit.builder()
+                .title("준호의 절망") // 이렇게 할 경우 content = null이 들어가지만, 클라이언트와 협의해서 content원본을 보낼 수도 있고 안보낼 수도 있다.
+                .content("너는 아니?")
+                .build();
+        //when
+        postService.edit(post.getId(), postEdit);
+
+        //then
+        assertThrows(PostNotFound.class, () -> {
+            postService.edit(post.getId() + 1L, postEdit);
+        });
+    }
 }

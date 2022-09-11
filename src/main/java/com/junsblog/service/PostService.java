@@ -1,14 +1,18 @@
 package com.junsblog.service;
 
 import com.junsblog.domain.Post;
+import com.junsblog.domain.PostEditor;
+import com.junsblog.exception.PostNotFound;
 import com.junsblog.repository.PostRepository;
 import com.junsblog.request.PostCreate;
+import com.junsblog.request.PostEdit;
 import com.junsblog.request.PostSearch;
 import com.junsblog.response.PostResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,7 +36,7 @@ public class PostService {
 
     public PostResponse get(Long id) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 글입니다."));
+                .orElseThrow(PostNotFound::new);
 
         //요구사항이 들어오면 응답 클래스로 분리하세요!!
         //json응답에서 title값 길이를 최대 10글자로 해주세요.
@@ -62,5 +66,26 @@ public class PostService {
                 .map(PostResponse::new)
                 .collect(Collectors.toList());
 
+    }
+
+    @Transactional
+    public void edit(Long id, PostEdit postEdit) {
+        Post post = postRepository.findById(id).orElseThrow(PostNotFound::new);
+
+        PostEditor.PostEditorBuilder postEditorBuilder = post.toEditor();
+
+        PostEditor postEditor = postEditorBuilder.title(postEdit.getTitle())
+                .content(postEdit.getContent())
+                .build();
+
+        post.edit(postEditor);
+    }
+
+
+    public void delete(Long id) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(PostNotFound::new);
+
+        postRepository.delete(post);
     }
 }

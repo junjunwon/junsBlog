@@ -1,6 +1,7 @@
 package com.junsblog.controller;
 
 import com.junsblog.request.PostCreate;
+import com.junsblog.request.PostEdit;
 import com.junsblog.request.PostSearch;
 import com.junsblog.response.PostResponse;
 import com.junsblog.service.PostService;
@@ -71,7 +72,8 @@ public class PostController  {
     //등록
     @PostMapping("/savePostJson")
     public Map<String, String> saveJson(@RequestBody @Valid PostCreate request){
-        log.info("params = {}", request.toString());
+        request.validate();
+
         postService.write(request);
         return Map.of();
     }
@@ -80,6 +82,17 @@ public class PostController  {
     public String save(@RequestParam Map<String, String> params) {
         log.info("params = {}", params);
         return "save";
+    }
+
+    //수정에 관한 것은 응답으로 json을 잘 주지 않는 편이다.
+    @PatchMapping("/edit/{postId}")
+    public void edit(@PathVariable Long postId, @RequestBody @Valid PostEdit request) {
+        postService.edit(postId, request);
+    }
+
+    @DeleteMapping("/delete/{postId}")
+    public void delete(@PathVariable Long postId) {
+        postService.delete(postId);
     }
 
 }

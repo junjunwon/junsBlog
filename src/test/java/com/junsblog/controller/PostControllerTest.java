@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.junsblog.domain.Post;
 import com.junsblog.repository.PostRepository;
 import com.junsblog.request.PostCreate;
+import com.junsblog.request.PostEdit;
 import com.junsblog.service.PostService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,8 +22,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -238,5 +238,108 @@ class PostControllerTest {
                 .andExpect(jsonPath("$[0].title").value("나만의 블로그 제목 - 30"))
                 .andExpect(jsonPath("$[0].content").value("나만의 글 목록 - 30"))
                 .andDo(print());
+    }
+
+    @Test
+    @DisplayName("글 제목 수정")
+    void editTitle() throws Exception {
+        //given
+        Post post = Post.builder()
+                .title("준호의 꿈")
+                .content("너는 아니?")
+                .build();
+        postRepository.save(post);
+
+        PostEdit postEdit = PostEdit.builder()
+                .title("준호의 절망") // 이렇게 할 경우 content = null이 들어가지만, 클라이언트와 협의해서 content원본을 보낼 수도 있고 안보낼 수도 있다.
+                .content("너는 아니?")
+                .build();
+
+        //expected
+        mockMvc.perform(patch("/edit/{postId}", post.getId())
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(postEdit))
+                )
+                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.title").value("준호의 꿈"))
+//                .andExpect(jsonPath("$.content").value("나는 몰라"))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("글 삭제")
+    void deleteTest() throws Exception {
+        //given
+        Post post = Post.builder()
+                .title("준호의 꿈")
+                .content("너는 아니?")
+                .build();
+        postRepository.save(post);
+
+        //expected
+        mockMvc.perform(delete("/delete/{postId}", post.getId())
+                .contentType(APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("글 한개 조회 - 실패에 대한 에러 테스트")
+    void failTestForfindById() throws Exception {
+
+        mockMvc.perform(delete("/delete/{postId}", 1L)
+                        .contentType(APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andDo(print());
+
+    }
+
+    @Test
+    @DisplayName("글 제목 수정 - 실패에 대한 에러 테스트")
+    void failTestForeditTitle() throws Exception {
+        //given
+        Post post = Post.builder()
+                .title("준호의 꿈")
+                .content("너는 아니?")
+                .build();
+        postRepository.save(post);
+
+        PostEdit postEdit = PostEdit.builder()
+                .title("준호의 절망")
+                .content("너는 아니?")
+                .build();
+
+        //expected
+        mockMvc.perform(patch("/edit/{postId}", post.getId() + 1)
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(postEdit))
+                )
+                .andExpect(status().isNotFound())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("post 등록 요청 시 바보는 포함될 수 없다.(잘못된 요청) -> 데이터베이스에 저장된다.")
+    public void exceptionTestForsaveDatabase() throws Exception {
+        //given
+        PostCreate postCreate = PostCreate.builder()
+                        .title("나는 바보입니다.")
+                        .content("내용입니다.")
+                        .build();
+
+        //when
+        mockMvc.perform(post("/savePostJson")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(postCreate)))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+
+//        //then
+//        assertEquals(1L, postRepository.count());
+//
+//        Post post = postRepository.findAll().get(0);
+//        assertEquals("제목입니다." , post.getTitle());
+//        assertEquals("내용입니다.", post.getContent());
+
     }
 }
