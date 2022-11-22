@@ -70,7 +70,7 @@ public class PostController  {
 
 
     //등록
-    @PostMapping("/savePostJson")
+    @PostMapping("/posts")
     public Map<String, String> saveJson(@RequestBody @Valid PostCreate request){
         request.validate();
 

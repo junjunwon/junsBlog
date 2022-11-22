@@ -64,7 +64,7 @@ class PostControllerTest {
     @Test
     @DisplayName("등록 요청 json type")
     public void saveJson() throws Exception {
-        mockMvc.perform(post("/savePostJson")
+        mockMvc.perform(post("/posts")
                         .contentType(APPLICATION_JSON)
                         .content("{\"title\":\"제목입니다.\", \"content\":\"내용입니다\"}"))
                 .andExpect(status().isOk())
@@ -72,24 +72,24 @@ class PostControllerTest {
                 .andDo(print());
     }
 
-    @Test
-    @DisplayName("saveJon요청 시 title값은 필수다.")
-    public void saveJsonValidate() throws Exception {
-        mockMvc.perform(post("/savePostJson")
-                        .contentType(APPLICATION_JSON)
-                        .content("{\"title\":null, \"content\":\"내용입니다\"}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("400"))
-                .andExpect(jsonPath("$.message").value("잘못된 요청입니다."))
-                .andExpect(jsonPath("$.validation.title").value("타이틀을 입력해주세요."))
-                .andDo(print());
-    }
+//    @Test
+//    @DisplayName("saveJon요청 시 title값은 필수다.")
+//    public void saveJsonValidate() throws Exception {
+//        mockMvc.perform(post("/posts")
+//                        .contentType(APPLICATION_JSON)
+//                        .content("{\"title\":null, \"content\":\"내용입니다\"}"))
+//                .andExpect(status().isBadRequest())
+//                .andExpect(jsonPath("$.code").value("400"))
+//                .andExpect(jsonPath("$.message").value("잘못된 요청입니다."))
+//                .andExpect(jsonPath("$.validation.title").value("타이틀을 입력해주세요."))
+//                .andDo(print());
+//    }
 
     @Test
     @DisplayName("post 등록 요청 시 데이터베이스에 저장된다.")
     public void saveDatabase() throws Exception {
         //when
-        mockMvc.perform(post("/savePostJson")
+        mockMvc.perform(post("/posts")
                         .contentType(APPLICATION_JSON)
                         .content ("{\"title\":\"제목입니다.\", \"content\":\"내용입니다.\"}"))
                 .andExpect(status().isOk())
@@ -116,7 +116,7 @@ class PostControllerTest {
         String json = objectMapper.writeValueAsString(request);//실무에서 정말 많이 사용함
 
         //when
-        mockMvc.perform(post("/savePostJson")
+        mockMvc.perform(post("/posts")
                         .contentType(APPLICATION_JSON)
                         .content ("{\"title\":\"제목입니다.\", \"content\":\"내용입니다.\"}"))
                 .andExpect(status().isOk())
@@ -328,7 +328,7 @@ class PostControllerTest {
                         .build();
 
         //when
-        mockMvc.perform(post("/savePostJson")
+        mockMvc.perform(post("/posts")
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(postCreate)))
                 .andExpect(status().isBadRequest())

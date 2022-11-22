@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+## junsBlog nodeenv-16 ignore
+nodeenv-16
